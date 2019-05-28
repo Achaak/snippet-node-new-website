@@ -1,6 +1,6 @@
 # snippet-node-new-website
 
-This is a snippet for start a new node website project.
+This is a snippet for start a new Node website project.
 
 __Install :__
 * *npm install*
