@@ -4,8 +4,9 @@ var global = {};
 global.dev = true
 
 global.builder = require("./builder.js");
-global.path    = require("./mixins/routes.js");
+global.routes  = require("./mixins/routes.js");
 global.tools   = require("./mixins/tools.js");
+global.params  = require("./mixins/params.js");
 
 global.http      = require('http');
 global.fs        = require('fs');
@@ -16,6 +17,7 @@ global.uglifyJS  = require('uglify-js');
 global.uglifycss = require("uglifycss");
 global.sass      = require('node-sass');
 global.rimraf    = require("rimraf");
+global.path      = require("path");
 
 global.app    = global.express();
 global.server = global.http.createServer(global.app);
@@ -31,12 +33,16 @@ global.app.set('views', './www/src/views');
 global.app.set('view engine', 'jade');
 
 
-global.builder.createBuild(global);
+// get all server params
+global.params.getParams(global);
+
+
+//global.builder.createBuild(global);
 
 
 
 // Create all path
-global.path.createPath(global);
+global.routes.createPath(global);
 
 
 // END

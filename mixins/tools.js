@@ -16,6 +16,7 @@ async function getFiles(_global, _folder, _extention, _opts, _filesList = []) {
     // Get files and folders
     var _files = await _global.fs.readdirSync(_folder);
 
+
     for (let i = 0; i < _files.length; i++) {
         _file = _files[i];
         
@@ -23,15 +24,16 @@ async function getFiles(_global, _folder, _extention, _opts, _filesList = []) {
 
         if (_split.length == 1 && _global.fs.lstatSync(_folder).isDirectory() && _opts.recursive) {
             try {
-                await getFiles(_global, _folder+"/"+_file, _extention, _opts, _filesList)
+                await getFiles(_global, _global.path.join(_folder, "/"+_file), _extention, _opts, _filesList)
             }
             catch(e) {}
         }
-        else if (_global._.last(_split) == _extention)
+        else if (_global._.last(_split) == _extention) {
             _filesList.push({
                 folder: _folder,
                 file: _file
             });
+        }
     }
 
     return _filesList;

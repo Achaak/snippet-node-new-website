@@ -1,4 +1,4 @@
 {
     "ignore": ["*.html", "*.json", "*.jpg", "node_modules/*", "public/*", "www/build/*"],
-    "ext": "js scss"
+    "ext": "js scss route"
 }

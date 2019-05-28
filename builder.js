@@ -2,10 +2,10 @@ exports.createBuild = (_global) => {
     // Defind event
     _event = 'createBuild:filesPath:get:jade';
 
-    _global.tools.getFiles(_global, __dirname+"/www/src", "jade", opts = { recursive: true, event: _event });
+    _global.tools.getFiles(_global, _global.path.join(__dirname, "/www/src"), "jade", opts = { recursive: true, event: _event });
     
     _global.emitEvent.once(_event, (_filesPath) => {
-        _global.rimraf(__dirname+"/www/build", function () { 
+        _global.rimraf(_global.path.join(__dirname, "/www/build"), function () { 
             createBuild(_global, _filesPath);
         });
     });
@@ -17,14 +17,14 @@ function createBuild(_global, _filesPath) {
 
         // Launch JS minifier
         _event = 'createBuild:filesPath:get:js';
-        _global.tools.getFiles(_global, _folder+"/js", "js", opts = { recursive: false, event: _event });
+        _global.tools.getFiles(_global, _global.path.join(_folder, "/js"), "js", opts = { recursive: false, event: _event });
         _global.emitEvent.once(_event, (_filesPath) => {
             minifyJs(_global, _filesPath);
         });
 
         // Launch SCSS minifier
         _event = 'createBuild:filesPath:get:scss';
-        _global.tools.getFiles(_global, _folder+"/scss", "scss", opts = { recursive: false, event: _event });
+        _global.tools.getFiles(_global, _global.path.join(_folder, "/scss"), "scss", opts = { recursive: false, event: _event });
         _global.emitEvent.once(_event, (_filesPath) => {
             minifyScss(_global, _filesPath);
         });
@@ -36,7 +36,7 @@ function minifyJs(_global, _filesPath) {
     // Defind files content
     var _filesContent = {};
     for (let i = 0; i < _filesPath.length; i++) {
-        _filesContent["file"+i] = _global.fs.readFileSync(_filesPath[i].folder+"/"+_filesPath[i].file, "utf8");
+        _filesContent["file"+i] = _global.fs.readFileSync(_global.path.join(_filesPath[i].folder, "/"+_filesPath[i].file), "utf8");
     }
 
     // Minify files
@@ -45,7 +45,7 @@ function minifyJs(_global, _filesPath) {
     // Create folder
     _global.fs.mkdir(_global._.first(_filesPath).folder.replace("src", "build"), { recursive: true }, (_err) => {
         // Create file
-        _global.fs.writeFileSync(_global._.first(_filesPath).folder.replace("src", "build")+"/product.min.js", _minify.code, "utf8");
+        _global.fs.writeFileSync(_global.path.join(_global._.first(_filesPath).folder.replace("src", "build"), "/product.min.js"), _minify.code, "utf8");
     });
 }
 
@@ -61,7 +61,7 @@ function minifyScss(_global, _filesPath) {
         );
 
         // Write the minify css
-        _global.fs.writeFile(_global._.first(_filesPath).folder.replace("src", "build").replace("scss", "css")+"/product.min.css", uglified, function(err){
+        _global.fs.writeFile(_global.path.join(_global._.first(_filesPath).folder.replace("src", "build").replace("scss", "css"), "/product.min.css"), uglified, function(err){
     
             // Delete css file
             for (let i = 0; i < _cssPathList.length; i++) {
@@ -74,7 +74,7 @@ function minifyScss(_global, _filesPath) {
     for (let i = 0; i < _filesPath.length; i++) {
         // Compile scss file
         _global.sass.render({
-            file: _filesPath[i].folder+"/"+_filesPath[i].file
+            file: _global.path.join(_filesPath[i].folder, "/"+_filesPath[i].file)
         }, function(err, result) {
             _filePath = _filesPath[i];
 
