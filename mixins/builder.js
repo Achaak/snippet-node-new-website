@@ -1,4 +1,4 @@
-exports.createBuild = (_global) => {
+exports.createBuild = (_global, _callback) => {
     // Defind event
     _event = 'createBuild:filesPath:get:jade';
     _global.tools.getFiles(_global, _global.path.join(__dirname, "../www/src"), "jade", opts = { recursive: true, event: _event , filesName: ["index"]});
@@ -12,7 +12,8 @@ exports.createBuild = (_global) => {
         });
     });
 
-
+    // Callback
+    if (_callback) _callback();
 }
 
 

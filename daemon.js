@@ -15,6 +15,7 @@ global.uglifycss = require("uglifycss");
 global.sass      = require('node-sass');
 global.rimraf    = require("rimraf");
 global.path      = require("path");
+global.reload    = require("reload");
 
 global.app    = global.express();
 global.server = global.http.createServer(global.app);
@@ -31,18 +32,27 @@ global.app.set('view engine', 'jade');
 
 
 // Get all server params
-global.params.getParams(global);
+global.params.getParams(global,
+    
+    // Create the build
+    global.builder.createBuild(global, 
+        
+        // Create all path
+        global.routes.createPath(global)
+    )
+);
 
 
-// Create the build
-global.builder.createBuild(global);
 
 
-// Create all path
-global.routes.createPath(global);
 
 
-// END
-console.info("[SERVER]  -- Server is started ! --".green);
+// Create the server
+global.server = global.http.createServer(global.app);
 
-global.server.listen(8081);
+global.server.listen(
+    8081, 
+    () => console.log("[SERVER]  -- Server is started ! --".green)
+);
+
+global.reload(global.app);
