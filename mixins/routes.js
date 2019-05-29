@@ -25,10 +25,10 @@ exports.createPath = function(_global, _callback) {
                         pathJS : _global.path.join(_folder.replace(_global.path.join(__dirname, "../www"), "").replace("src", "build"), "/product.min.js"),
                         pathCSS: _global.path.join(_folder.replace(_global.path.join(__dirname, "../www"), "").replace("src", "build"), "/product.min.css"),
                         html   : html,
-                        
-                        title      : _global.opts.title,
-                        description: _global.opts.description
                     }, _opts);
+
+                    
+                    _opts = _global._.extend(_global.opts.pageContent, _opts);
 
                     res.render("main", {opts: _opts});
                 });
@@ -49,6 +49,7 @@ exports.createPath = function(_global, _callback) {
     // Static files
     _global.app.use(_global.express.static(_global.path.join(__dirname + '/../www/')));
 
+    console.log("[ROUTES]  Routes is created")
 }
 
 

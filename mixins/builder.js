@@ -1,17 +1,20 @@
-exports.createBuild = (_global, _callback) => {
+exports.createBuild = async (_global, _callback) => {
     // Defind event
     _event = 'createBuild:filesPath:get:jade';
     _global.tools.getFiles(_global, _global.path.join(__dirname, "../www/src"), "jade", opts = { recursive: true, event: _event , filesName: ["index"]});
-    _global.emitEvent.once(_event, (_filesPath) => {
-        _global.rimraf(_global.path.join(__dirname, "../www/build"), function () {
+    await _global.emitEvent.once(_event, (_filesPath) => {
+        _global.rimraf(_global.path.join(__dirname, "../www/build"), async () => {
             // Function to minify the products files
-            createProductBuild(_global, _filesPath);
+            await createProductBuild(_global, _filesPath);
 
             // Function to minify the components files
-            createComponentsBuild(_global);
+            await createComponentsBuild(_global);
         });
     });
 
+
+    console.log("[BUILDER] Build is created")
+    
     // Callback
     if (_callback) _callback();
 }
@@ -120,9 +123,9 @@ function minifyProductScss(_global, _filesPath) {
 // -- COMPONENT
 // ----
 // Function to minify the components files
-function createComponentsBuild(_global) {
-    minifyComponentsJs(_global);
-    minifyComponentsCss(_global);
+async function createComponentsBuild(_global) {
+    await minifyComponentsJs(_global);
+    await minifyComponentsCss(_global);
 }
 
 // Function to minify the JS in component file

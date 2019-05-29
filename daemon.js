@@ -31,28 +31,34 @@ global.app.set('views', './www/src/views');
 global.app.set('view engine', 'jade');
 
 
-// Get all server params
-global.params.getParams(global,
+// Prepare the server
+prepareServer()
+
+
+// Function to prepare the server
+async function prepareServer() {
+    // Get all server params
+    await global.params.getParams(global);
     
     // Create the build
-    global.builder.createBuild(global, 
+    await global.builder.createBuild(global);
         
-        // Create all path
-        global.routes.createPath(global)
-    )
-);
+    // Create all path
+    await global.routes.createPath(global);
+
+    startServer();
+}
 
 
+// Function to start the server
+function startServer() {
+    // Create the server
+    global.server = global.http.createServer(global.app);
 
+    global.server.listen(
+        8081, 
+        () => console.log("[SERVER]  -- Server is started ! --".green)
+    );
 
-
-
-// Create the server
-global.server = global.http.createServer(global.app);
-
-global.server.listen(
-    8081, 
-    () => console.log("[SERVER]  -- Server is started ! --".green)
-);
-
-global.reload(global.app);
+    global.reload(global.app);
+}

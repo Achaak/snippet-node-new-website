@@ -2,8 +2,21 @@ exports.getParams = function(_global, _callback) {
     if (!_global.opts) _global.opts = {};
 
     _global.opts = {
-        title      : "Title",
-        description: "Hello world",
+        // Page contents
+        pageContent: {
+            title      : "Title",
+            description: "Hello world",
+            hrefIcon   : "",
+    
+            // Open Graph
+            openGraph : {
+                title      : "",
+                description: "",
+                image      : "",
+                type       : "",
+                url        : ""
+            }
+        },
 
         // Route
         errorRoute  : '/test',
