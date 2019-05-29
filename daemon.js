@@ -1,9 +1,6 @@
 var global = {};
 
-// Defind parameters
-global.dev = true
-
-global.builder = require("./builder.js");
+global.builder = require("./mixins/builder.js");
 global.routes  = require("./mixins/routes.js");
 global.tools   = require("./mixins/tools.js");
 global.params  = require("./mixins/params.js");
@@ -33,12 +30,12 @@ global.app.set('views', './www/src/views');
 global.app.set('view engine', 'jade');
 
 
-// get all server params
+// Get all server params
 global.params.getParams(global);
 
 
-//global.builder.createBuild(global);
-
+// Create the build
+global.builder.createBuild(global);
 
 
 // Create all path

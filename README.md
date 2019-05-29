@@ -13,7 +13,7 @@ __Install :__
 __Config :__
 * Update */mixins/params.js*
 * Develop the pages in the */home* folder
-* One page is constitute of *js* folder, *scss* folder, *index.jade* file and *.route* file
+* One page is constitute of *js* folder, *scss* folder, *index.jade* file and *controller.js* file
 * */www/components* content other script. Add the path on the */mixins* params.js* file for to compile.
 
 __Launch :__

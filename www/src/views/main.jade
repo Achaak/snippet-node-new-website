@@ -1,0 +1,12 @@
+doctype html
+html
+    head
+        title #{opts.title}
+        link(rel="stylesheet" type="text/css" href="#{opts.pathCSS}")
+        link(rel="stylesheet" type="text/css" href="/build/components.min.css")
+
+    body
+        |!{ opts.html }
+
+        script(src="/build/components.min.js")
+        script(src="#{opts.pathJS}")

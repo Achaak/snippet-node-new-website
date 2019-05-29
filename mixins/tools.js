@@ -29,10 +29,14 @@ async function getFiles(_global, _folder, _extention, _opts, _filesList = []) {
             catch(e) {}
         }
         else if (_global._.last(_split) == _extention) {
-            _filesList.push({
-                folder: _folder,
-                file: _file
-            });
+            // Delete last element
+            _split.pop();
+
+            if (!_opts.filesName || _opts.filesName.includes(_global._.join(_split, '.')))
+                _filesList.push({
+                    folder: _folder,
+                    file: _file
+                });
         }
     }
 
