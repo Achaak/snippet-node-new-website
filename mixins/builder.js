@@ -1,7 +1,7 @@
 exports.createBuild = async (_global, _callback) => {
     // Defind event
     _event = 'createBuild:filesPath:get:jade';
-    _global.tools.getFiles(_global, _global.path.join(__dirname, "../www/src"), "jade", opts = { recursive: true, event: _event , filesName: ["index"]});
+    _global.tools.getFiles(_global, _global.path.join(__dirname, "../www/src"), "jade", opts = { recursive: true, event: _event, filesName: ["index"]});
     await _global.emitEvent.once(_event, (_filesPath) => {
         _global.rimraf(_global.path.join(__dirname, "../www/build"), async () => {
             // Function to minify the products files
@@ -29,19 +29,24 @@ function createProductBuild(_global, _filesPath) {
         _folder = _filesPath[i].folder
 
         // Launch JS minifier
-        _event = 'createBuild:filesPath:get:js';
-        _global.tools.getFiles(_global, _global.path.join(_folder, "/js"), "js", opts = { recursive: false, event: _event });
-        _global.emitEvent.once(_event, (_filesPath) => {
-            minifyProductJs(_global, _filesPath);
-        });
+        _global.tools.getFiles(_global, _global.path.join(_folder, "/js"), "js", opts = { recursive: false, event: 'createBuild:filesPath:get:js' });
 
         // Launch SCSS minifier
-        _event = 'createBuild:filesPath:get:scss';
-        _global.tools.getFiles(_global, _global.path.join(_folder, "/scss"), "scss", opts = { recursive: false, event: _event });
-        _global.emitEvent.once(_event, (_filesPath) => {
-            minifyProductScss(_global, _filesPath);
-        });
+        _global.tools.getFiles(_global, _global.path.join(_folder, "/scss"), "scss", opts = { recursive: false, event: 'createBuild:filesPath:get:scss' });
     }
+
+    // Launch JS minifier event
+    _global.emitEvent.on('createBuild:filesPath:get:js', (_filesPath) => {
+        minifyProductJs(_global, _filesPath);
+    });
+
+    // Launch SCSS minifier event
+    _global.emitEvent.on('createBuild:filesPath:get:scss', (_filesPath) => {
+        minifyProductScss(_global, _filesPath);
+    });
+
+    // Launch SCSS minifier for main scss
+    _global.tools.getFiles(_global,  _global.path.join(__dirname, "/../www/src/views/main/scss"), "scss", opts = { recursive: false, event: 'createBuild:filesPath:get:scss' });
 }
 
 
@@ -65,10 +70,12 @@ function minifyProductJs(_global, _filesPath) {
 
 
 // Function to minify the SCSS in product file
-function minifyProductScss(_global, _filesPath) {
+async function minifyProductScss(_global, _filesPath) {
     // Event for minify all css
-    _cssPathList = [];
-    _global.emitEvent.once("minify:css", () => {
+    var _cssPathList = [];
+    var _nbRandom    = Math.random();
+
+    _global.emitEvent.once("minify:css:"+_nbRandom, () => {
         // Minify css
         var uglified = _global.uglifycss.processFiles(
             _cssPathList,
@@ -91,16 +98,18 @@ function minifyProductScss(_global, _filesPath) {
         _global.sass.render({
             file: _global.path.join(_filesPath[i].folder, "/"+_filesPath[i].file)
         }, function(err, result) {
-            _filePath = _filesPath[i];
+            var _filePath = _filesPath[i];
 
             // If error
             if (err) return console.log("[ERROR] "+ JSON.stringify(err).red);
 
             // Create folder
             _global.fs.mkdir(_global.path.join(_filePath.folder.replace(/scss/g, "css").replace("src", "build"), ".."), { recursive: true }, (_err) => {
+
                 // Create file
-                _cssPath = _global.path.join((_filePath.folder+"/"+_filePath.file).replace(/scss/g, "css").replace("src", "build"), "..");
+                var _cssPath = _global.path.join((_filePath.folder+"/"+_filePath.file).replace(/scss/g, "css").replace("src", "build"), "..");
                 _global.fs.writeFile(_cssPath, result.css, function(err){
+
                     if (err) return console.log("[ERROR] "+ JSON.stringify(err).red);
                     
                     // Add css path on the list
@@ -108,7 +117,7 @@ function minifyProductScss(_global, _filesPath) {
 
                     // If the last scss is compile
                     if (i == _filesPath.length-1) {
-                        _global.emitEvent.emit("minify:css");
+                        _global.emitEvent.emit("minify:css:"+_nbRandom);
                     }
                 });
             });
