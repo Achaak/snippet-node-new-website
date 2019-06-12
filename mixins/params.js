@@ -27,7 +27,13 @@ exports.getParams = function(_global, _callback) {
             js: [
                 "/jquery/jquery.min.js"
             ]
-        }
+        },
+
+        authorizationFolder: [
+            "/build",
+            "/assets",
+            "/reload"
+        ]
     };
 
     // Callback

@@ -9,7 +9,10 @@ exports.getFiles = async (_folder, _extention, _opts, _filesList = []) => {
     }, _opts)
 
     // Get files and folders
-    var _files = await _GLOBAL.fs.readdirSync(_folder);
+    var _files = []
+    try {
+        _files = await _GLOBAL.fs.readdirSync(_folder);
+    } catch (e) {}
 
     for (let i = 0; i < _files.length; i++) {
         _file = _files[i];
