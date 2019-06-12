@@ -19,7 +19,7 @@ exports.getParams = function(_global, _callback) {
         },
 
         // Route
-        errorRoute  : '/test',
+        errorRoute  : '/',
 
         // Components
         components: {

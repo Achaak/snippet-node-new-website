@@ -1,174 +1,237 @@
 exports.createBuild = async (_global, _callback) => {
-    // Defind event
-    _event = 'createBuild:filesPath:get:jade';
-    _global.tools.getFiles(_global, _global.path.join(__dirname, "../www/src"), "jade", opts = { recursive: true, event: _event, filesName: ["index"]});
-    await _global.emitEvent.once(_event, (_filesPath) => {
-        _global.rimraf(_global.path.join(__dirname, "../www/build"), async () => {
-            // Function to minify the products files
-            await createProductBuild(_global, _filesPath);
+    _GLOBAL   = _global;
+    _CALLBACK = _callback;
 
-            // Function to minify the components files
-            await createComponentsBuild(_global);
-        });
+    _FILE          = 0;
+    _FILE_COMPILED = 0;
+
+
+    await _GLOBAL.rimraf(_GLOBAL.path.join(__dirname, "../www/build"), async () => {
+        createBuild(_GLOBAL);
     });
+}
 
-
-    console.log("[BUILDER] Build is created")
+function isFinish() {
+    console.log(_FILE, _FILE_COMPILED)
+    if (_FILE != _FILE_COMPILED) return false
     
     // Callback
-    if (_callback) _callback();
+    if (_CALLBACK) _CALLBACK();
+}
+
+
+async function createBuild( _callback) {
+
+    // ----
+    // -- CREATE PRODUCTS BUILD
+    // ----
+
+    // Get all path of the jade file
+    var _filePathJade = await _GLOBAL.tools.getFiles(
+            _GLOBAL.path.join(__dirname, "../www/src"),
+            "jade",
+            opts = {
+                recursive: true,
+                filesName: ["index"]
+            }
+        );
+
+    // Prepare all file path for js, css and scss
+    var _filePath = [];
+
+    for (let i = 0; i < _filePathJade.length; i++)
+        _filePath.push(_filePathJade[i].folder);
+
+
+    for (let i = 0; i < _filePath.length; i++) {
+        var _folder = _filePath[i];
+
+        var _filesJs = await _GLOBAL.tools.getFiles(_GLOBAL.path.join(_folder, "/js"), "js", opts = { recursive: false});
+        _FILE += _filesJs.length
+        await minifyProductJs(_filesJs);
+        
+        var _filesScss = await _GLOBAL.tools.getFiles(_GLOBAL.path.join(_folder, "/scss"), "scss", opts = { recursive: false})
+        _FILE += _filesScss.length
+        await minifyProductScss(_filesScss);
+    }
+
+    // Launch SCSS minifier for main scss
+    var _filesScss = await _GLOBAL.tools.getFiles( _GLOBAL.path.join(__dirname, "/../www/src/views/main/scss"), "scss", opts = { recursive: false})
+    await minifyProductScss(_filesScss);
+
+
+
+    // Minify the components files
+    await minifyComponentsJs(_GLOBAL);
+    await minifyComponentsCss(_GLOBAL);
+
+
+
+    console.log("[BUILDER] Build is created".green)
 }
 
 
 // ----
 // -- PRODUCT
 // ----
-// Function to minify the products files
-function createProductBuild(_global, _filesPath) {
-    for (let i = 0; i < _filesPath.length; i++) {
-        _folder = _filesPath[i].folder
-
-        // Launch JS minifier
-        _global.tools.getFiles(_global, _global.path.join(_folder, "/js"), "js", opts = { recursive: false, event: 'createBuild:filesPath:get:js' });
-
-        // Launch SCSS minifier
-        _global.tools.getFiles(_global, _global.path.join(_folder, "/scss"), "scss", opts = { recursive: false, event: 'createBuild:filesPath:get:scss' });
-    }
-
-    // Launch JS minifier event
-    _global.emitEvent.on('createBuild:filesPath:get:js', (_filesPath) => {
-        minifyProductJs(_global, _filesPath);
-    });
-
-    // Launch SCSS minifier event
-    _global.emitEvent.on('createBuild:filesPath:get:scss', (_filesPath) => {
-        minifyProductScss(_global, _filesPath);
-    });
-
-    // Launch SCSS minifier for main scss
-    _global.tools.getFiles(_global,  _global.path.join(__dirname, "/../www/src/views/main/scss"), "scss", opts = { recursive: false, event: 'createBuild:filesPath:get:scss' });
-}
-
 
 // Function to minify the JS in product file
-function minifyProductJs(_global, _filesPath) {
+async function minifyProductJs(_filesPath) {
+    console.log("[BUILDER]  Prepare JS: ", _filesPath)
+
+    // If the _filesPath is empty
+    if(_filesPath.length == 0)
+        return false;
+
     // Defind files content
     var _filesContent = {};
     for (let i = 0; i < _filesPath.length; i++) {
-        _filesContent["file"+i] = _global.fs.readFileSync(_global.path.join(_filesPath[i].folder, "/"+_filesPath[i].file), "utf8");
+        _filesContent["file"+i] = await _GLOBAL.asyncReadFile(_GLOBAL.path.join(_filesPath[i].folder, "/"+_filesPath[i].file), "utf8");
     }
 
     // Minify files
-    var _minify = _global.uglifyJS.minify(_filesContent);
+    var _minifyJs = await _GLOBAL.uglifyJS.minify(_filesContent);
 
     // Create folder
-    _global.fs.mkdir(_global.path.join(_global._.first(_filesPath).folder.replace("src", "build"), ".."), { recursive: true }, (_err) => {
-        // Create file
-        _global.fs.writeFileSync(_global.path.join(_global._.first(_filesPath).folder.replace("src", "build"), "../product.min.js"), _minify.code, "utf8");
-    });
+    await _GLOBAL.asyncMkdir(_GLOBAL.path.join(_GLOBAL._.first(_filesPath).folder.replace("src", "build"), ".."), { recursive: true }, async (_err) => {});
+
+    // Create file
+    await _GLOBAL.asyncWriteFile(_GLOBAL.path.join(_GLOBAL._.first(_filesPath).folder.replace("src", "build"), "../product.min.js"), _minifyJs.code, "utf8");
+    
+    _FILE_COMPILED++;
+    isFinish();
 }
 
 
 // Function to minify the SCSS in product file
-async function minifyProductScss(_global, _filesPath) {
+async function minifyProductScss(_filesPathScss) {
+    console.log("[BUILDER]  Prepare SCSS: ", _filesPathScss)
+
+    // If the _filesPath is empty
+    if(_filesPathScss.length == 0)
+        return false;
+
     // Event for minify all css
     var _cssPathList = [];
-    var _nbRandom    = Math.random();
 
-    _global.emitEvent.once("minify:css:"+_nbRandom, () => {
-        // Minify css
-        var uglified = _global.uglifycss.processFiles(
-            _cssPathList,
-            { maxLineLen: 500, expandVars: true }
-        );
+    for (let i = 0; i < _filesPathScss.length; i++) {
+        var _filePath = _filesPathScss[i];
 
-        // Write the minify css
-        _global.fs.writeFile(_global.path.join(_global._.first(_filesPath).folder.replace("src", "build").replace("scss", "css"), "../product.min.css"), uglified, function(err){
-    
-            // Delete css file
-            for (let i = 0; i < _cssPathList.length; i++) {
-                _global.rimraf(_cssPathList[i], function () {});
-            }
-        });
-    });
-
-
-    for (let i = 0; i < _filesPath.length; i++) {
         // Compile scss file
-        _global.sass.render({
-            file: _global.path.join(_filesPath[i].folder, "/"+_filesPath[i].file)
-        }, function(err, result) {
-            var _filePath = _filesPath[i];
-
+        _GLOBAL.sass.render({
+            file: _GLOBAL.path.join(_filePath.folder, "/"+_filePath.file)
+        }, async function(err, result) {
+            
             // If error
             if (err) return console.log("[ERROR] "+ JSON.stringify(err).red);
 
+
             // Create folder
-            _global.fs.mkdir(_global.path.join(_filePath.folder.replace(/scss/g, "css").replace("src", "build"), ".."), { recursive: true }, (_err) => {
+            var _mkdirPath = _GLOBAL.path.join(result.stats.entry, "/../..");
+            _mkdirPath = _mkdirPath.replace(/scss/g, "css");
+            _mkdirPath = _mkdirPath.replace("src", "build");
+            
+            await _GLOBAL.asyncMkdir(_mkdirPath, { recursive: true });
 
-                // Create file
-                var _cssPath = _global.path.join((_filePath.folder+"/"+_filePath.file).replace(/scss/g, "css").replace("src", "build"), "..");
-                _global.fs.writeFile(_cssPath, result.css, function(err){
-
-                    if (err) return console.log("[ERROR] "+ JSON.stringify(err).red);
-                    
-                    // Add css path on the list
-                    _cssPathList.push(_cssPath);
-
-                    // If the last scss is compile
-                    if (i == _filesPath.length-1) {
-                        _global.emitEvent.emit("minify:css:"+_nbRandom);
-                    }
-                });
+            // Create file
+            var _cssPath = result.stats.entry;
+            _cssPath = _cssPath.replace(".scss", ".css");
+            _cssPath = _cssPath.replace(_GLOBAL.path.join("/", "scss"), "");
+            _cssPath = _cssPath.replace("src", "build");
+            
+            // Write file
+            _GLOBAL.fs.writeFile(_cssPath, result.css, (err) => {
+                if (err) return console.log("[ERROR] "+ JSON.stringify(err).red);
+                
+                // Add css path on the list
+                _cssPathList.push(_cssPath);
+    
+                // If the last scss is compile
+                if (i == _filesPathScss.length-1) {
+                    minifyProductCss(_cssPathList);
+                }
             });
         });
     }
-
-    
 }
+
+
+// Function to minify the CSS in product file
+async function minifyProductCss(_cssPathList) {
+    
+    // Minify css
+    var uglified = await _GLOBAL.uglifycss.processFiles(
+        _cssPathList,
+        { maxLineLen: 500, expandVars: true }
+    );
+
+    // Write the minify css
+    var _cssPath = _GLOBAL.path.join(_GLOBAL._.first(_cssPathList), "/../product.min.css");
+    await _GLOBAL.asyncWriteFile(_cssPath, uglified, function(err){});
+
+    // Delete css file
+    for (let i = 0; i < _cssPathList.length; i++) {
+        _GLOBAL.rimraf(_cssPathList[i], function () {});
+    }
+
+    _FILE_COMPILED++;
+    isFinish();
+}
+
+
+
 
 
 // ----
 // -- COMPONENT
 // ----
-// Function to minify the components files
-async function createComponentsBuild(_global) {
-    await minifyComponentsJs(_global);
-    await minifyComponentsCss(_global);
-}
 
 // Function to minify the JS in component file
-function minifyComponentsJs(_global) {
+async function minifyComponentsJs() {
     // Defind files content
     var _filesContent = {};
-    for (let i = 0; i < _global.opts.components.js.length; i++) {
-        _filePath = _global.path.join(__dirname, "../www/components", _global.opts.components.js[i]);
-        _filesContent["file"+i] = _global.fs.readFileSync(_global.path.join(_filePath), "utf8");
+    
+    for (let i = 0; i < _GLOBAL.opts.components.js.length; i++) {
+        _FILE += _GLOBAL.opts.components.js.length;
+
+        _filePath = _GLOBAL.path.join(__dirname, "../www/components", _GLOBAL.opts.components.js[i]);
+        _filesContent["file"+i] = _GLOBAL.fs.readFileSync(_GLOBAL.path.join(_filePath), "utf8");
     }
 
     // Minify files
-    var _minify = _global.uglifyJS.minify(_filesContent);
+    var _minify = _GLOBAL.uglifyJS.minify(_filesContent);
 
     // Create folder
-    _global.fs.mkdir(_global.path.join(__dirname, "../www/build"), { recursive: true }, (_err) => {
+    await _GLOBAL.fs.mkdir(_GLOBAL.path.join(__dirname, "../www/build"), { recursive: true }, async (_err) => {
         // Create file
-        _global.fs.writeFileSync(_global.path.join(__dirname, "../www/build", "/components.min.js"), _minify.code, "utf8");
+        await _GLOBAL.fs.writeFileSync(_GLOBAL.path.join(__dirname, "../www/build", "/components.min.js"), _minify.code, "utf8");
+
+        _FILE_COMPILED++;
+        isFinish();
     });
 }
 
 // Function to minify the css in component file
-function minifyComponentsCss(_global) {
+async function minifyComponentsCss() {
     // Foramt css path
-    for (let i = 0; i < _global.opts.components.css.length; i++) {
-        _global.opts.components.css[i] = _global.path.join(__dirname, "../www/build", _global.opts.components.css[i]);
+    for (let i = 0; i < _GLOBAL.opts.components.css.length; i++) {
+        _FILE += _GLOBAL.opts.components.css.length;
+
+        _GLOBAL.opts.components.css[i] = _GLOBAL.path.join(__dirname, "../www/build", _GLOBAL.opts.components.css[i]);
     }
 
+    // If is empty
+    if(_GLOBAL.opts.components.css.length == false) return false;
+
     // Minify css
-    var uglified = _global.uglifycss.processFiles(
-        _global.opts.components.css,
+    var uglified = await _GLOBAL.uglifycss.processFiles(
+        _GLOBAL.opts.components.css,
         { maxLineLen: 500, expandVars: true }
     );
 
     // Write the minify css
-    _global.fs.writeFile(_global.path.join(__dirname, "../www/build", "/components.min.css"), uglified, function(err){});
+    await _GLOBAL.fs.writeFile(_GLOBAL.path.join(__dirname, "../www/build", "/components.min.css"), uglified, function(err){});
+    
+    _FILE_COMPILED++;
+    isFinish();
 }

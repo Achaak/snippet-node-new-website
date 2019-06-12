@@ -1,42 +1,38 @@
-exports.getFiles = (_global, _folder, _extention, _opts) => {
-    // Extend parameters
-    _opts = _global._.extend({
-        recursive: true,
-        event: 'tools:filesPath:get'
-    }, _opts)
-
-    getFiles(_global, _folder, _extention, _opts)
-        .then( (_files) => {
-            _global.emitEvent.emit(_opts.event, _files);
-        });
+exports.create = (_global) => {
+    _GLOBAL = _global;
 }
 
+exports.getFiles = async (_folder, _extention, _opts, _filesList = []) => {
+    // Extend parameters
+    _opts = _GLOBAL._.extend({
+        recursive: true,
+    }, _opts)
 
-async function getFiles(_global, _folder, _extention, _opts, _filesList = []) {
     // Get files and folders
-    var _files = await _global.fs.readdirSync(_folder);
-
+    var _files = await _GLOBAL.fs.readdirSync(_folder);
 
     for (let i = 0; i < _files.length; i++) {
         _file = _files[i];
         
         _split = _file.split(".")
 
-        if (_split.length == 1 && _global.fs.lstatSync(_folder).isDirectory() && _opts.recursive) {
+        if (_split.length == 1 && _GLOBAL.fs.lstatSync(_folder).isDirectory() && _opts.recursive) {
             try {
-                await getFiles(_global, _global.path.join(_folder, "/"+_file), _extention, _opts, _filesList)
+                await _GLOBAL.tools.getFiles(_GLOBAL.path.join(_folder, "/"+_file), _extention, _opts, _filesList)
             }
             catch(e) {}
         }
-        else if (_global._.last(_split) == _extention) {
+        else if (_GLOBAL._.last(_split) == _extention) {
             // Delete last element
             _split.pop();
 
-            if (!_opts.filesName || _opts.filesName.includes(_global._.join(_split, '.')))
+            if (!_opts.filesName || _opts.filesName.includes(_GLOBAL._.join(_split, '.'))) {
                 _filesList.push({
                     folder: _folder,
                     file: _file
                 });
+            }
+
         }
     }
 

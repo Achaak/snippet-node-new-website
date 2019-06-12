@@ -1,55 +1,55 @@
-exports.createPath = function(_global, _callback) {
+exports.createPath = async function(_global, _callback) {
 
-    _event = 'createBuild:filesPath:get:controller';
-    _global.tools.getFiles(_global, _global.path.join(__dirname, "../www/src"), "js", opts = { recursive: true, event: _event, filesName:["controller"] });
-    _global.emitEvent.once(_event, (_filesPath) => {
-        for (let i = 0; i < _filesPath.length; i++) {
+    var _controllerFiles = await _global.tools.getFiles(_global.path.join(__dirname, "../www/src"), "js", opts = { recursive: true, filesName:["controller"] });
+    
+    for (let i = 0; i < _controllerFiles.length; i++) {
+        // Init variable
+        _file   = _global.path.join(_controllerFiles[i].folder, '/'+_controllerFiles[i].file);
+        _folder = _controllerFiles[i].folder;
+
+        _js = require(_file);
+
+        _opts = _js.getOpts(_global);
+
+        // Chargement des pages
+        await _global.app.get(_opts.route, function(req, res) {
             // Init variable
-            _file   = _global.path.join(_filesPath[i].folder, '/'+_filesPath[i].file);
-            _folder = _filesPath[i].folder;
+            var _page = _global.path.join(_folder.replace(_global.path.join(__dirname, "../www/src/views/"), ""), '/index');
+            
 
-            _js = require(_file);
+            // Render page
+            res.render(_global.path.join(_folder.replace(_global.path.join(__dirname, "../www/src/views/"), ""), "/index.jade"), function(err, html) {
+                // Set parameters
+                _opts = _global._.extend({
+                    pathJS : _global.path.join(_folder.replace(_global.path.join(__dirname, "../www"), "").replace("src", "build"), "/product.min.js"),
+                    pathCSS: _global.path.join(_folder.replace(_global.path.join(__dirname, "../www"), "").replace("src", "build"), "/product.min.css"),
+                    html   : html,
+                }, _opts);
 
-            _opts = _js.getOpts(_global);
-
-            // Chargement des pages
-            _global.app.get(_opts.route, function(req, res) {
-                // Init variable
-                var _page = _global.path.join(_folder.replace(_global.path.join(__dirname, "../www/src/views/"), ""), '/index');
                 
+                _opts = _global._.extend(_global.opts.pageContent, _opts);
 
-                // Render page
-                res.render(_global.path.join(_folder.replace(_global.path.join(__dirname, "../www/src/views/"), ""), "/index.jade"), function(err, html) {
-                    // Set parameters
-                    _opts = _global._.extend({
-                        pathJS : _global.path.join(_folder.replace(_global.path.join(__dirname, "../www"), "").replace("src", "build"), "/product.min.js"),
-                        pathCSS: _global.path.join(_folder.replace(_global.path.join(__dirname, "../www"), "").replace("src", "build"), "/product.min.css"),
-                        html   : html,
-                    }, _opts);
-
-                    
-                    _opts = _global._.extend(_global.opts.pageContent, _opts);
-
-                    res.render("main", {opts: _opts});
-                });
-        
-                pageLoad(_page);
+                res.render("main", {opts: _opts});
             });
-        }
-        
-        // Error path
-        _global.app.use(function(req, res, next){
-            res.redirect(_global.opts.errorRoute);
+    
+            pageLoad(_page);
         });
 
-        // Callback
-        if (_callback) _callback();
-    });
+        console.log("[ROUTES] ", _opts.route)
+    }
 
     // Static files
     _global.app.use(_global.express.static(_global.path.join(__dirname + '/../www/')));
+    
+    // Error path
+    _global.app.get('*', function(req, res){
+        res.redirect(_global.opts.errorRoute);
+    });
 
-    console.log("[ROUTES]  Routes is created")
+    console.log("[ROUTES]  Routes is created".green)
+
+    // Callback
+    if (_callback) _callback();
 }
 
 

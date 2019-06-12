@@ -2,11 +2,19 @@ var global = {};
 
 global.builder = require("./mixins/builder.js");
 global.routes  = require("./mixins/routes.js");
+
 global.tools   = require("./mixins/tools.js");
+global.tools.create(global);
+
 global.params  = require("./mixins/params.js");
 
 global.http      = require('http');
 global.fs        = require('fs');
+global.util      = require('util');
+global.asyncReadFile  = global.util.promisify(global.fs.readFile);
+global.asyncWriteFile = global.util.promisify(global.fs.writeFile);
+global.asyncMkdir     = global.util.promisify(global.fs.mkdir);
+global.asyncAccess    = global.util.promisify(global.fs.access)
 global.express   = require('express');
 global.colors    = require('colors');
 global._         = require('lodash');
@@ -37,16 +45,18 @@ prepareServer()
 
 // Function to prepare the server
 async function prepareServer() {
+    console.log("[SERVER]  Prepare the server")
+
     // Get all server params
     await global.params.getParams(global);
     
     // Create the build
-    await global.builder.createBuild(global);
-        
-    // Create all path
-    await global.routes.createPath(global);
+    await global.builder.createBuild(global, async () => {
+        // Create all path
+        await global.routes.createPath(global);
 
-    startServer();
+        startServer();
+    } );
 }
 
 
