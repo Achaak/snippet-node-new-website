@@ -46,16 +46,16 @@ async function createBuild( _callback) {
         var _folder = _filePath[i];
 
         var _filesJs = await _GLOBAL.tools.getFiles(_GLOBAL.path.join(_folder, "/js"), "js", opts = { recursive: false});
-        _FILE += _filesJs.length
+        _FILE += _filesJs.length;
         await minifyProductJs(_filesJs);
         
-        var _filesScss = await _GLOBAL.tools.getFiles(_GLOBAL.path.join(_folder, "/scss"), "scss", opts = { recursive: false})
-        _FILE += _filesScss.length
+        var _filesScss = await _GLOBAL.tools.getFiles(_GLOBAL.path.join(_folder, "/scss"), "scss", opts = { recursive: false});
+        _FILE += _filesScss.length;
         await minifyProductScss(_filesScss);
     }
 
     // Launch SCSS minifier for main scss
-    var _filesScss = await _GLOBAL.tools.getFiles( _GLOBAL.path.join(__dirname, "/../www/src/views/main/scss"), "scss", opts = { recursive: false})
+    var _filesScss = await _GLOBAL.tools.getFiles( _GLOBAL.path.join(__dirname, "/../www/src/views/main/scss"), "scss", opts = { recursive: false});
     await minifyProductScss(_filesScss);
 
 

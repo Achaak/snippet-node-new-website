@@ -32,6 +32,7 @@ exports.getParams = function(_global, _callback) {
         authorizationFolder: [
             "/build",
             "/assets",
+            "/fonts",
             "/reload"
         ]
     };
