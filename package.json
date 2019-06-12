@@ -1,7 +1,7 @@
 {
-  "name": "website_axel_lavoie",
+  "name": "snippet-node-new-website",
   "version": "1.0.0",
-  "description": "Website Axel Lavoie",
+  "description": "Snippet for start a node project",
   "main": "app.js",
   "author": {
     "name": "Axel Lavoie",
