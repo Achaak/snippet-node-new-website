@@ -92,13 +92,15 @@ async function minifyProductJs(_filesPath) {
     var _minifyJs = await _GLOBAL.uglifyJS.minify(_filesContent);
 
     // Create folder
-    await _GLOBAL.asyncMkdir(_GLOBAL.path.join(_GLOBAL._.first(_filesPath).folder.replace("src", "build"), ".."), { recursive: true }, async (_err) => {});
-
+    await _GLOBAL.asyncMkdir(_GLOBAL.path.join(_GLOBAL._.first(_filesPath).folder.replace("src", "build"), ".."), { recursive: true });
+        
     // Create file
-    await _GLOBAL.asyncWriteFile(_GLOBAL.path.join(_GLOBAL._.first(_filesPath).folder.replace("src", "build"), "../product.min.js"), _minifyJs.code, "utf8");
-    
-    _FILE_COMPILED++;
-    isFinish();
+    _GLOBAL.fs.writeFile(_GLOBAL.path.join(_GLOBAL._.first(_filesPath).folder.replace("src", "build"), "../product.min.js"), _minifyJs.code, (err) => {
+        if (err) return console.log("[ERROR] "+ JSON.stringify(err).red);
+        
+        _FILE_COMPILED++;
+        isFinish();
+    });
 }
 
 
@@ -216,7 +218,7 @@ async function minifyComponentsCss() {
     for (let i = 0; i < _GLOBAL.opts.components.css.length; i++) {
         _FILE += _GLOBAL.opts.components.css.length;
 
-        _GLOBAL.opts.components.css[i] = _GLOBAL.path.join(__dirname, "../www/build", _GLOBAL.opts.components.css[i]);
+        _GLOBAL.opts.components.css[i] = _GLOBAL.path.join(__dirname, "../www/components", _GLOBAL.opts.components.css[i]);
     }
 
     // If is empty
