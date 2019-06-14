@@ -12,6 +12,7 @@ exports.createBuild = async (_global, _callback) => {
 }
 
 function isFinish() {
+    console.log(_FILE, _FILE_COMPILED)
     if (_FILE != _FILE_COMPILED) return false
 
     console.log("[BUILDER] Build is created".green)
@@ -48,16 +49,17 @@ async function createBuild( _callback) {
         var _folder = _filePath[i];
 
         var _filesJs = await _GLOBAL.tools.getFiles(_GLOBAL.path.join(_folder, "/js"), "js", opts = { recursive: false});
-        _FILE += _filesJs.length;
+        if(_filesJs.length) _FILE ++;
         await minifyProductJs(_filesJs);
         
         var _filesScss = await _GLOBAL.tools.getFiles(_GLOBAL.path.join(_folder, "/scss"), "scss", opts = { recursive: false});
-        _FILE += _filesScss.length;
+        if(_filesScss.length) _FILE ++;
         await minifyProductScss(_filesScss);
     }
 
     // Launch SCSS minifier for main scss
     var _filesScss = await _GLOBAL.tools.getFiles( _GLOBAL.path.join(__dirname, "/../www/src/views/main/scss"), "scss", opts = { recursive: false});
+    if(_filesScss.length) _FILE ++;
     await minifyProductScss(_filesScss);
 
 
