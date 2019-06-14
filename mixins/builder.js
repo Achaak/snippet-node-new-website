@@ -169,7 +169,7 @@ async function minifyProductCss(_cssPathList) {
 
     // Delete css file
     for (let i = 0; i < _cssPathList.length; i++) {
-        //_GLOBAL.rimraf(_cssPathList[i], function () {});
+        _GLOBAL.rimraf(_cssPathList[i], function () {});
     }
 
     _FILE_COMPILED++;
