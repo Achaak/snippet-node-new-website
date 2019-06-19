@@ -1,7 +1,6 @@
-exports.createPath = async function(_global, _callback) {
+exports.initRoute = async function(_global, _callback) {
 
     var _controllerFiles = await _global.tools.getFiles(_global.path.join(__dirname, "../www/src"), "js", opts = { recursive: true, filesName:["controller"] });
-    console.log(_controllerFiles);
     
     for (let i = 0; i < _controllerFiles.length; i++) {
         // Init variable
@@ -15,34 +14,7 @@ exports.createPath = async function(_global, _callback) {
         _controllerFiles[i].opts = _opts;
         _controllerFiles[i].route = _opts.route;
 
-        // Chargement des pages
-        /*_global.app.get(_opts.route, function(req, res) {
-            console.log(_opts.route);
-            // Init variable
-            var _page = _global.path.join(_folder.replace(_global.path.join(__dirname, "../www/src/views/"), ""), '/index');
-            
-
-            // Render page
-            res.render(_global.path.join(_folder.replace(_global.path.join(__dirname, "../www/src/views/"), ""), "/index.jade"), function(err, html) {
-                // Set parameters
-                _opts = _global._.extend({
-                    pathJS : _global.path.join(_folder.replace(_global.path.join(__dirname, "../www"), "").replace("src", "build"), "/product.min.js"),
-                    pathCSS: _global.path.join(_folder.replace(_global.path.join(__dirname, "../www"), "").replace("src", "build"), "/product.min.css"),
-                    html   : html,
-                }, _opts);
-
-                console.log(_opts);
-
-                
-                _opts = _global._.extend(_global.opts.pageContent, _opts);
-
-                res.render("main", {opts: _opts});
-            });
-    
-            pageLoad(_page);
-        });*/
-
-        console.log("[ROUTES] ", _opts.route)
+        console.log("[ROUTES]      ", _opts.route)
     }
 
     // Static files
@@ -87,7 +59,7 @@ exports.createPath = async function(_global, _callback) {
         }
     });
 
-    console.log("[ROUTES]  Routes is created".green)
+    console.log("[ROUTES]      Routes is created".green)
 
     // Callback
     if (_callback) _callback();
@@ -95,5 +67,5 @@ exports.createPath = async function(_global, _callback) {
 
 
 function pageLoad(_page) {
-    console.log(("[SERVER]  Connexion to : "+_page).blue);
+    console.log(("[SERVER]      Connexion to : "+_page).blue);
 }

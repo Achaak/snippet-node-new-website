@@ -1,5 +1,7 @@
 var global = {};
 
+var port = 8081;
+
 global.builder = require("./mixins/builder.js");
 global.routes  = require("./mixins/routes.js");
 
@@ -28,10 +30,6 @@ global.reload    = require("reload");
 global.app    = global.express();
 global.server = global.http.createServer(global.app);
 
-// Emit event
-const EventEmitter = require('events')
-global.emitEvent = new EventEmitter();
-
 
 
 // Defind template
@@ -51,9 +49,9 @@ async function prepareServer() {
     await global.params.getParams(global);
     
     // Create the build
-    await global.builder.createBuild(global, async () => {
+    await global.builder.initBuilder(global, async () => {
         // Create all path
-        await global.routes.createPath(global);
+        await global.routes.initRoute(global);
 
         startServer();
     } );
@@ -66,8 +64,8 @@ function startServer() {
     global.server = global.http.createServer(global.app);
 
     global.server.listen(
-        8081, 
-        () => console.log("[SERVER]  -- Server is started ! --".green)
+        port, 
+        () => console.log(("[SERVER]      -- Server is started to "+port+" ! --").green)
     );
 
     global.reload(global.app);
