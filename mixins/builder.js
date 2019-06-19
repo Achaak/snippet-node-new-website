@@ -12,7 +12,6 @@ exports.createBuild = async (_global, _callback) => {
 }
 
 function isFinish() {
-    console.log(_FILE, _FILE_COMPILED)
     if (_FILE != _FILE_COMPILED) return false
 
     console.log("[BUILDER] Build is created".green)
