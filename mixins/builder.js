@@ -54,6 +54,11 @@ exports.initBuilder = async (_global, _callback) => {
             if(_filesScss.length) _FILE ++;
             await minifyProductScss(_filesScss);
         }
+
+        // Launch SCSS minifier for main js
+        var _filesJs = await _GLOBAL.tools.getFiles(_GLOBAL.path.join(__dirname, "/../www/src/views/main/js"), "js", opts = { recursive: false});
+        if(_filesJs.length) _FILE ++;
+        await minifyProductJs(_filesJs);
     
         // Launch SCSS minifier for main scss
         var _filesScss = await _GLOBAL.tools.getFiles( _GLOBAL.path.join(__dirname, "/../www/src/views/main/scss"), "scss", opts = { recursive: false});
