@@ -23,7 +23,10 @@ exports.initRoute = async function(_global, _callback) {
     // Error path
     _global.app.get('*', function(req, res, next){
 
-        var _infospage = _global._.find(_controllerFiles, {route: req.originalUrl});
+        // Test regex
+        var _infospage = _global._.find(_controllerFiles, function(o) {
+            return (new RegExp("^"+o.route+"$")).test(req.originalUrl);
+        });
 
         // If page is not found or is autorize element
         var _autorizationFolder = _global._.filter(_global.opts.authorizationFolder, (o) => {
