@@ -54,6 +54,11 @@ exports.initRoute = async function(_global, _callback) {
 
                 
                 _opts = _global._.extend(_global.opts.pageContent, _opts);
+                
+                // Get param of daemon
+                var _datasPath = _global.path.join(__dirname, "../datas/daemon-params.json");
+                var _datas = JSON.parse(_global.fs.readFileSync(_datasPath));
+                _opts.prod = _datas.prod;
 
                 res.render("main", {opts: _opts});
             });
