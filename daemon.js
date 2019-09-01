@@ -28,7 +28,6 @@ global.path      = require("path");
 global.reload    = require("reload");
 
 global.app    = global.express();
-global.server = global.http.createServer(global.app);
 
 
 
